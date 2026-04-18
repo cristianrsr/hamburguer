@@ -1,10 +1,17 @@
 import Categoria from "../models/Categoria.js";
+import Produto from "../models/Produto.js";
 
  const CategoriaController = {
   create: async (req, res) => {
     try {
       const categoria = await Categoria.create(req.body);
-      res.status(201).json(categoria);
+      const categoriaComProdutos = await Categoria.findByPk(categoria.id, {
+        include: {
+          model: Produto,
+          as: 'produtos'
+        }
+      });
+      res.status(201).json(categoriaComProdutos);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -12,7 +19,12 @@ import Categoria from "../models/Categoria.js";
   findAll: async (req, res) => { 
     try
     {
-      const categorias = await Categoria.findAll();
+      const categorias = await Categoria.findAll({
+        include: {
+          model: Produto,
+          as: 'produtos'
+        }
+      });
       if (categorias.length === 0) {
         throw new Error('Nenhuma categoria encontrada');
       }
@@ -24,7 +36,12 @@ import Categoria from "../models/Categoria.js";
 
   findById: async (req, res) => { 
     try{
-        const categoria = await Categoria.findByPk(req.params.id);
+        const categoria = await Categoria.findByPk(req.params.id, {
+          include: {
+            model: Produto,
+            as: 'produtos'
+          }
+        });
         if (categoria) {
           res.status(200).json(categoria);
         } else {
@@ -39,7 +56,13 @@ import Categoria from "../models/Categoria.js";
         const categoria = await Categoria.findByPk(req.params.id);
         if (categoria) {
           await categoria.update(req.body);
-          res.status(200).json(categoria);
+          const categoriaAtualizada = await Categoria.findByPk(req.params.id, {
+            include: {
+              model: Produto,
+              as: 'produtos'
+            }
+          });
+          res.status(200).json(categoriaAtualizada);
         } else {
           res.status(404).json({ error: 'Categoria nao encontrada' });
         }
